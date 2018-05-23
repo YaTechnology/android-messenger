@@ -17,6 +17,6 @@ class ChannelSenderImpl : ChannelMessageSender {
         val replyProps = AMQP.BasicProperties.Builder()
                 //.correlationId(properties.getCorrelationId())
                 .build()
-        channel.basicPublish("", chatInfo.id, replyProps, message.getBody())
+        channel.basicPublish(AmqpClient.EXCHANGE_NAME, chatInfo.id, replyProps, message.body)
     }
 }

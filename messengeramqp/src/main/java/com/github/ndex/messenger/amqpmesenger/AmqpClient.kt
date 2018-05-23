@@ -2,55 +2,48 @@ package com.github.ndex.messenger.amqpmesenger
 
 import com.github.ndex.messenger.amqpmesenger.common.Logger
 import com.github.ndex.messenger.amqpmesenger.common.MainThreadNotifier
+import com.github.ndex.messenger.amqpmesenger.common.Serializer
 import com.github.ndex.messenger.interfaces.*
 import com.rabbitmq.client.Connection
 
-class AmqpClient : Client {
+class AmqpClient(private val factory: ConnectionFabric,
+                 private val consumerFabric: ConsumerFabric,
+                 private val uiRunner: MainThreadNotifier,
+                 private val uuid: String,
+                 private val serializer: Serializer,
+                 logger: Logger) : Client {
     companion object {
         private val TAG = AmqpClient::class.java.simpleName
-        private val QUEUE_NAME = "queue"
+        val EXCHANGE_NAME = "messenger.topic"
+        val SERVICE_QUEUE_NAME = "services"
     }
 
-    private val factory: ConnectionFabric
     private var connection: Connection = ConectionStub()
     private var channelSender: ChannelMessageSender = ChannelSenderStub()
-    private val consumerFabric: ConsumerFabric
     private val messageListeners = ArrayList<NewMessageListener>()
     private val connectionListeners = ArrayList<ConnectionListener>()
-    private val uiRunner: MainThreadNotifier
-    private val log: Logger
+    private val log: Logger = logger
 
-    constructor(factory: ConnectionFabric,
-                consumerFabric: ConsumerFabric,
-                uiRunner: MainThreadNotifier,
-                logger: Logger) {
-        this.consumerFabric = consumerFabric
-        this.factory = factory
-        this.uiRunner = uiRunner
-        this.log = logger
-        consumerFabric.listener = MessageListener()
-    }
-
-    override fun connect() {
-        val thread = Thread({
-            doConnect()
-        })
-        thread.start()
-    }
+    override fun connect() = Thread { doConnect() }.start()
 
     private fun doConnect() {
         try {
             connection = factory.connection
             val channel = connection.createChannel(666)
-            channelSender = ChannelSenderImpl(channel)
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null)
+            channel.exchangeDeclare(EXCHANGE_NAME, "topic")
+            channel.queueDeclare(uuid, false, true, false, null)
             channel.basicQos(1)
+            channel.queueBind(uuid, EXCHANGE_NAME, uuid)
+            channelSender = ChannelSenderImpl(channel)
 
             val consumer = consumerFabric.provideConsumer(channel)
-
-            val tag = channel.basicConsume(QUEUE_NAME, false, consumer)
+            val tag = channel.basicConsume(uuid, false, consumer)
             log.d(TAG, "consume = $tag")
+
             notifyConnected()
+
+            val chatListManager = ChatListManager(serializer, channel, uuid)
+            chatListManager.requestChatList()
         } catch (e: Exception) {
             log.e(TAG, "doConnect: ", e)
         }
@@ -58,8 +51,7 @@ class AmqpClient : Client {
 
     private fun notifyConnected() {
         uiRunner.runOnUiThread(Runnable {
-            val iterator = connectionListeners.iterator()
-            iterator.forEach {
+            connectionListeners.forEach {
                 it.onConnected()
             }
         })
@@ -95,10 +87,13 @@ class AmqpClient : Client {
 
     private inner class MessageListener : NewMessageListener {
         override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
-            val iterator = messageListeners.iterator()
-            iterator.forEach {
+            messageListeners.forEach {
                 it.onMessageReceived(message, chatInfo)
             }
         }
+    }
+
+    init {
+        consumerFabric.listener = MessageListener()
     }
 }

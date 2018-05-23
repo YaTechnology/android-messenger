@@ -6,8 +6,8 @@ import java.util.*
  * Receiving/sending message interface.
  */
 interface Message {
-    fun getUser(): User
-    fun getTime(): Date
-    fun getBody(): ByteArray
-    fun getText(): String
+    val user: User
+    val time: Date
+    val body: ByteArray
+    val text: String
 }

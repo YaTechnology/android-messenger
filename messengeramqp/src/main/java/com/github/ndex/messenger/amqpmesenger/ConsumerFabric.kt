@@ -19,9 +19,12 @@ class ConsumerFabric {
                                         properties: AMQP.BasicProperties,
                                         body: ByteArray) {
                 try {
-                    val user = User("", "")
+                    //TODO: Check sender (it may be service or user)
+                    val userId = envelope.routingKey ?: ""
+                    //TODO: Extract user name from message gson
+                    val user = User(userId, "")
                     val users = ArrayList<User>()
-                    val chatInfo = ChatInfo("", users)
+                    val chatInfo = ChatInfo("", "", users)
                     listener.onMessageReceived(AmqpMessage(body, user), chatInfo)
                 } catch (e: RuntimeException) {
                     println(" [.] " + e.toString())
@@ -30,6 +33,14 @@ class ConsumerFabric {
                 }
             }
         }
+    }
+
+    private fun handleUserMessage(body: ByteArray, routingKey: String) {
+        //TODO: handle user message.
+    }
+
+    private fun handleServiceMessage(body: ByteArray) {
+        //TODO: handle service message.
     }
 
     private inner class MessageListener : NewMessageListener {

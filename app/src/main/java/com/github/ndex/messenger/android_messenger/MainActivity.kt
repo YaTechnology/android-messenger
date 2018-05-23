@@ -2,13 +2,16 @@ package com.github.ndex.messenger.android_messenger
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import com.github.ndex.messenger.amqpmesenger.AmqpClient
 import com.github.ndex.messenger.amqpmesenger.ConnectionFabric
 import com.github.ndex.messenger.amqpmesenger.ConsumerFabric
 import com.github.ndex.messenger.amqpmesenger.common.AndroidLogger
+import com.github.ndex.messenger.amqpmesenger.common.GsonSerializer
 import com.github.ndex.messenger.amqpmesenger.common.MainThreadNotifier
 import com.github.ndex.messenger.interfaces.*
+import java.security.AccessController.getContext
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -23,7 +26,14 @@ class MainActivity : AppCompatActivity() {
 
         val factory = ConnectionFabric()
         val consumerFabric = ConsumerFabric()
-        client = AmqpClient(factory, consumerFabric, MainThreadNotifier(), AndroidLogger())
+        val userId = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ANDROID_ID)
+        client = AmqpClient(factory,
+                consumerFabric,
+                MainThreadNotifier(),
+                userId,
+                GsonSerializer(),
+                AndroidLogger())
         client.registerConnectionListener(ConnectedListenerImpl())
         client.registerNewMessageListener(MessageReceiverImpl())
         client.connect()
@@ -46,7 +56,7 @@ class MainActivity : AppCompatActivity() {
 
     private inner class MessageReceiverImpl : NewMessageListener {
         override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
-            Log.d(TAG, "onMessageReceived: " + message.getText())
+            Log.d(TAG, "onMessageReceived: " + message.text)
         }
     }
 }
