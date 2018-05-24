@@ -6,12 +6,7 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.AMQP
 
 
-class ChannelSenderImpl : ChannelMessageSender {
-    override val channel: Channel
-
-    constructor(channel: Channel) {
-        this.channel = channel
-    }
+class ChannelSenderImpl(override val channel: Channel) : ChannelMessageSender {
 
     override fun sendMessage(message: Message, chatInfo: ChatInfo) {
         val replyProps = AMQP.BasicProperties.Builder()

@@ -3,11 +3,15 @@ package com.github.ndex.messenger.amqpmesenger
 import com.github.ndex.messenger.amqpmesenger.common.Logger
 import com.github.ndex.messenger.amqpmesenger.common.MainThreadNotifier
 import com.github.ndex.messenger.amqpmesenger.common.Serializer
+import com.github.ndex.messenger.amqpmesenger.messages.ChatMessageHandler
+import com.github.ndex.messenger.amqpmesenger.messages.ServiceMessageHandler
 import com.github.ndex.messenger.interfaces.*
 import com.rabbitmq.client.Connection
 
 class AmqpClient(private val factory: ConnectionFabric,
                  private val consumerFabric: ConsumerFabric,
+                 private val serviceMessageHandler: ServiceMessageHandler,
+                 private val chatMessageHandler: ChatMessageHandler,
                  private val uiRunner: MainThreadNotifier,
                  private val uuid: String,
                  private val serializer: Serializer,
@@ -22,6 +26,7 @@ class AmqpClient(private val factory: ConnectionFabric,
     private var channelSender: ChannelMessageSender = ChannelSenderStub()
     private val messageListeners = ArrayList<NewMessageListener>()
     private val connectionListeners = ArrayList<ConnectionListener>()
+    private val chatListChangedListener = ArrayList<ChatListChangedListener>()
     private val log: Logger = logger
 
     override fun connect() = Thread { doConnect() }.start()
@@ -37,7 +42,7 @@ class AmqpClient(private val factory: ConnectionFabric,
             channelSender = ChannelSenderImpl(channel)
 
             val consumer = consumerFabric.provideConsumer(channel)
-            val tag = channel.basicConsume(uuid, false, consumer)
+            val tag = channel.basicConsume(uuid, true, consumer)
             log.d(TAG, "consume = $tag")
 
             notifyConnected()
@@ -85,15 +90,30 @@ class AmqpClient(private val factory: ConnectionFabric,
         connectionListeners.remove(listener)
     }
 
+    override fun registerChatListChangedListener(listener: ChatListChangedListener) {
+        chatListChangedListener.add(listener)
+    }
+
+    override fun unregisterChatListChangedListener(listener: ChatListChangedListener) {
+        chatListChangedListener.remove(listener)
+    }
+
+    init {
+        chatMessageHandler.listener = MessageListener()
+        serviceMessageHandler.chatListUpdateListener = ::notifyChatListUpdated
+    }
+
+    private fun notifyChatListUpdated(chatList: List<ChatInfo>) {
+        chatListChangedListener.forEach {
+            it.onChatListChanged(chatList)
+        }
+    }
+
     private inner class MessageListener : NewMessageListener {
         override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
             messageListeners.forEach {
                 it.onMessageReceived(message, chatInfo)
             }
         }
-    }
-
-    init {
-        consumerFabric.listener = MessageListener()
     }
 }

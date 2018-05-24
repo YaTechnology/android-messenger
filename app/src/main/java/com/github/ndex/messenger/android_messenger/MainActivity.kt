@@ -10,8 +10,9 @@ import com.github.ndex.messenger.amqpmesenger.ConsumerFabric
 import com.github.ndex.messenger.amqpmesenger.common.AndroidLogger
 import com.github.ndex.messenger.amqpmesenger.common.GsonSerializer
 import com.github.ndex.messenger.amqpmesenger.common.MainThreadNotifier
+import com.github.ndex.messenger.amqpmesenger.messages.ChatMessageHandler
+import com.github.ndex.messenger.amqpmesenger.messages.ServiceMessageHandler
 import com.github.ndex.messenger.interfaces.*
-import java.security.AccessController.getContext
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -24,18 +25,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val serializer = GsonSerializer()
         val factory = ConnectionFabric()
-        val consumerFabric = ConsumerFabric()
+        val chatListMessageHandler = ChatMessageHandler()
+        val serviceMessageHandler = ServiceMessageHandler(serializer)
+        val consumerFabric = ConsumerFabric(serviceMessageHandler, chatListMessageHandler)
         val userId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID)
         client = AmqpClient(factory,
                 consumerFabric,
+                serviceMessageHandler,
+                chatListMessageHandler,
                 MainThreadNotifier(),
                 userId,
                 GsonSerializer(),
                 AndroidLogger())
         client.registerConnectionListener(ConnectedListenerImpl())
         client.registerNewMessageListener(MessageReceiverImpl())
+        client.registerChatListChangedListener(ChatListChangedListenerImpl())
         client.connect()
     }
 
@@ -57,6 +64,12 @@ class MainActivity : AppCompatActivity() {
     private inner class MessageReceiverImpl : NewMessageListener {
         override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
             Log.d(TAG, "onMessageReceived: " + message.text)
+        }
+    }
+
+    private inner class ChatListChangedListenerImpl : ChatListChangedListener {
+        override fun onChatListChanged(list: List<ChatInfo>) {
+            Log.d(TAG, "onChatListChanged: count = ${list.size}")
         }
     }
 }

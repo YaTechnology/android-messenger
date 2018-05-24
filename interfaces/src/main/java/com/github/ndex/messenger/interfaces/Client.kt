@@ -14,4 +14,7 @@ interface Client {
 
     fun registerConnectionListener(listener: ConnectionListener)
     fun unRegisterConnectionListener(listener: ConnectionListener)
+
+    fun registerChatListChangedListener(listener: ChatListChangedListener)
+    fun unregisterChatListChangedListener(listener: ChatListChangedListener)
 }
