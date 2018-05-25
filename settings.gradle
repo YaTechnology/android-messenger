@@ -1,1 +1,1 @@
-include ':app', ':messengeramqp', ':interfaces', ':gui'
+include ':app', ':messengeramqp', ':interfaces', ':gui', ':demo-module'
