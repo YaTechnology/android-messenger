@@ -41,9 +41,7 @@ class ChatService {
                 userId,
                 GsonSerializer(),
                 AndroidLogger())
-        client.registerConnectionListener(ConnectedListenerImpl())
-        client.registerNewMessageListener(MessageReceiverImpl())
-        client.registerChatListChangedListener(ChatListChangedListenerImpl())
+
     }
 
     fun connect() {
@@ -52,27 +50,5 @@ class ChatService {
 
     fun disconnect() {
         client.disconnect()
-    }
-
-    private inner class ConnectedListenerImpl : ConnectionListener {
-        override fun onConnected() {
-            Log.d(TAG, "onConnected")
-        }
-
-        override fun onDisconnected(reason: DisconnectionReasonException) {
-            Log.d(TAG, "onDisconnected")
-        }
-    }
-
-    private inner class MessageReceiverImpl : NewMessageListener {
-        override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
-            Log.d(TAG, "onMessageReceived: " + message.text)
-        }
-    }
-
-    private inner class ChatListChangedListenerImpl : ChatListChangedListener {
-        override fun onChatListChanged(list: List<ChatInfo>) {
-            Log.d(TAG, "onChatListChanged: count = ${list.size}")
-        }
     }
 }
