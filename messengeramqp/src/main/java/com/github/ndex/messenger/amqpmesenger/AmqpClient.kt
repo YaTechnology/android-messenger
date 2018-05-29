@@ -8,6 +8,8 @@ import com.github.ndex.messenger.amqpmesenger.messages.ServiceMessageHandler
 import com.github.ndex.messenger.interfaces.*
 import com.rabbitmq.client.Connection
 
+const val EXCHANGE_NAME = "messenger.topic"
+const val SERVICE_QUEUE_NAME = "services"
 class AmqpClient(private val factory: ConnectionFabric,
                  private val consumerFabric: ConsumerFabric,
                  private val serviceMessageHandler: ServiceMessageHandler,
@@ -18,8 +20,6 @@ class AmqpClient(private val factory: ConnectionFabric,
                  logger: Logger) : Client {
     companion object {
         private val TAG = AmqpClient::class.java.simpleName
-        val EXCHANGE_NAME = "messenger.topic"
-        val SERVICE_QUEUE_NAME = "services"
     }
 
     private var connection: Connection = ConectionStub()
@@ -63,6 +63,10 @@ class AmqpClient(private val factory: ConnectionFabric,
     }
 
     override fun disconnect() {
+        Thread { doDisconnect() }.start()
+    }
+
+    private fun doDisconnect() {
         try {
             connection.close()
         } catch (e: Exception) {

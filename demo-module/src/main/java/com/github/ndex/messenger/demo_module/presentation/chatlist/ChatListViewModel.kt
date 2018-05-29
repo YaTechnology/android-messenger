@@ -1,29 +1,35 @@
-package com.github.ndex.messenger.demo_module.presentation
+package com.github.ndex.messenger.demo_module.presentation.chatlist
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.LiveData
 import com.github.ndex.messenger.demo_module.domain.ChatService
+import com.github.ndex.messenger.demo_module.presentation.common.ActionLiveData
 import com.github.ndex.messenger.interfaces.*
 
 
-class ChatListViewModel : ViewModel {
-    private val chatService: ChatService
-    private val client: Client
+class ChatListViewModel(chatService: ChatService) : ViewModel() {
+    private val client: Client = chatService.client
 
-    constructor(chatService: ChatService) : super() {
-        this.chatService = chatService
-        client = chatService.client
+    private val chatList = MutableLiveData<List<ChatInfo>>()
+    private val openChatEvent = ActionLiveData<ChatInfo>()
+
+    init {
         client.registerConnectionListener(ConnectedListenerImpl())
         client.registerNewMessageListener(MessageReceiverImpl())
         client.registerChatListChangedListener(ChatListChangedListenerImpl())
         client.connect()
     }
 
-    private val chatList = MutableLiveData<List<ChatInfo>>()
+    fun getChatList(): LiveData<List<ChatInfo>> = chatList
+    fun getOpenChatEvent(): LiveData<ChatInfo> = openChatEvent
 
-    fun getChatList(): LiveData<List<ChatInfo>> {
-        return chatList
+    override fun onCleared() {
+        client.disconnect()
+    }
+
+    fun onItemClicked(item: ChatInfo) {
+        openChatEvent.sendAction(item)
     }
 
     private inner class ConnectedListenerImpl : ConnectionListener {
@@ -47,9 +53,5 @@ class ChatListViewModel : ViewModel {
             println("onChatListChanged: count = ${list.size}")
             chatList.postValue(list)
         }
-    }
-
-    override fun onCleared() {
-        client.disconnect()
     }
 }

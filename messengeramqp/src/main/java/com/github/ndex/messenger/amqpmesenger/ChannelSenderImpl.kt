@@ -9,9 +9,7 @@ import com.rabbitmq.client.AMQP
 class ChannelSenderImpl(override val channel: Channel) : ChannelMessageSender {
 
     override fun sendMessage(message: Message, chatInfo: ChatInfo) {
-        val replyProps = AMQP.BasicProperties.Builder()
-                //.correlationId(properties.getCorrelationId())
-                .build()
-        channel.basicPublish(AmqpClient.EXCHANGE_NAME, chatInfo.id, replyProps, message.body)
+        val replyProps = AMQP.BasicProperties.Builder().build()
+        channel.basicPublish(EXCHANGE_NAME, chatInfo.id, replyProps, message.body)
     }
 }

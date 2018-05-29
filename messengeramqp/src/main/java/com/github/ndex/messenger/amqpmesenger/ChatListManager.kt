@@ -20,7 +20,6 @@ class ChatListManager(private val serializer: Serializer,
                 .correlationId(UUID.randomUUID().toString())
                 .build()
 
-        channel.basicPublish(AmqpClient.EXCHANGE_NAME,
-                AmqpClient.SERVICE_QUEUE_NAME, replyProps, bytes)
+        channel.basicPublish(EXCHANGE_NAME, SERVICE_QUEUE_NAME, replyProps, bytes)
     }
 }
