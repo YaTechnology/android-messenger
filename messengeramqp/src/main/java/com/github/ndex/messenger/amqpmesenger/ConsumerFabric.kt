@@ -16,7 +16,7 @@ class ConsumerFabric(private val serviceMessageHandler: ServiceMessageHandler,
                                         properties: AMQP.BasicProperties,
                                         body: ByteArray) {
                 val userId = properties.replyTo ?: ""
-                if (AmqpClient.SERVICE_QUEUE_NAME == userId) {
+                if (SERVICE_QUEUE_NAME == userId) {
                     serviceMessageHandler.handleMessage(body)
                 } else {
                     chatMessageHandler.handleMessage(body, userId)
