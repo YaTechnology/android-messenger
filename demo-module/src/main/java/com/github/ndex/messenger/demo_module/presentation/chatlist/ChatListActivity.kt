@@ -38,12 +38,14 @@ class ChatListActivity : AppCompatActivity() {
     }
 
     private fun subscribeData() {
-        chatViewModel.getChatList().observe(this, Observer<List<ChatInfo>> { newValue ->
-            chatListAdapter.submitList(newValue!!)
+        chatViewModel.chatList.observe(this, Observer<List<ChatInfo>> { newValue ->
+            chatListAdapter.submitList(newValue)
         })
 
-        chatViewModel.getOpenChatEvent().observe(this, Observer<ChatInfo> { chatInfo ->
-            startChatActivity(chatInfo!!)
+        chatViewModel.openChatEvent.observe(this, Observer<ChatInfo> { chatInfo ->
+            if (chatInfo != null) {
+                startChatActivity(chatInfo)
+            }
         })
     }
 }

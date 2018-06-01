@@ -6,7 +6,7 @@ import com.github.ndex.messenger.demo_module.di.AppComponent
 import com.github.ndex.messenger.demo_module.domain.ChatService
 import javax.inject.Inject
 
-class ChatViewModelFactory(private val appComponent: AppComponent, private val chatId: String) : ViewModelProvider.Factory {
+class ChatViewModelFactory(private val appComponent: AppComponent) : ViewModelProvider.Factory {
     @Inject
     lateinit var chatService: ChatService
 
@@ -16,7 +16,7 @@ class ChatViewModelFactory(private val appComponent: AppComponent, private val c
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
-            return ChatViewModel(chatService, chatId) as T
+            return ChatViewModel(chatService) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

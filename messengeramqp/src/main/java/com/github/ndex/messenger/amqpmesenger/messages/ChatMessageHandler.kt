@@ -15,7 +15,7 @@ class ChatMessageHandler {
         val user = User(routingKey, "")
         val users = ArrayList<User>()
         val chatInfo = ChatInfo("", "", users)
-        listener.onMessageReceived(AmqpMessage(body, user), chatInfo)
+        listener.onMessageReceived(AmqpMessage(body, routingKey), chatInfo)
     }
 
     private class MessageListener : NewMessageListener {
