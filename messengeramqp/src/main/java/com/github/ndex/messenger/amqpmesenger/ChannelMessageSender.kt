@@ -6,5 +6,5 @@ import com.rabbitmq.client.Channel
 interface ChannelMessageSender {
     val channel: Channel
 
-    fun sendMessage(message: Message)
+    fun sendMessage(message: Message, chatId: String)
 }

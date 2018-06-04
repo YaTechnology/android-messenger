@@ -7,7 +7,7 @@ class ChannelSenderStub : ChannelMessageSender {
     override val channel: Channel
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
-    override fun sendMessage(message: Message) {
+    override fun sendMessage(message: Message, chatId: String) {
         /* stub */
     }
 }

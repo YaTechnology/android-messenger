@@ -40,6 +40,11 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
                 GsonSerializer(),
                 AndroidLogger())
 
+        chatListMessageHandler.listener = object : NewMessageListener {
+            override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
+                processNewMessage(message)
+            }
+        }
     }
 
     fun connect() {
@@ -67,7 +72,13 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
 
     fun sendMessage(text: String) {
         val message = buildMessage(text)
-        client.sendMessage(message)
+        client.sendMessage(message, currentChatId)
+        processNewMessage(message)
+    }
+
+    private fun buildMessage(text: String) = AmqpMessage(text.toByteArray(), "")
+
+    private fun processNewMessage(message: Message) {
         historyRepository.updateHistory(message)
         historyRepository.requestHistory {
             notifyMessagesListUpdated(it)
@@ -79,8 +90,6 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
             it.invoke(messageList)
         }
     }
-
-    private fun buildMessage(text: String) = AmqpMessage(text.toByteArray(), currentChatId)
 
     private class MessageUpdateListenerStup : OnMessagesListUpdated {
         override fun invoke(p1: List<Message>) {

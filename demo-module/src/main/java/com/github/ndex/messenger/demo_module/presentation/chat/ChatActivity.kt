@@ -37,6 +37,7 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.messagesList.observe(this, Observer {
             if (it != null) {
                 messagesAdapter.submitList(it)
+                messagesAdapter.notifyDataSetChanged()
             }
         })
 
@@ -56,7 +57,9 @@ class ChatActivity : AppCompatActivity() {
 
         messagesAdapter = MessageListAdapter(ViewHolderFactory())
         messageList.adapter = messagesAdapter
-        messageList.layoutManager = LinearLayoutManager(this)
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.reverseLayout = true
+        messageList.layoutManager = layoutManager
     }
 }
 

@@ -7,7 +7,7 @@ interface Client {
     fun connect()
     fun disconnect()
 
-    fun sendMessage(message: Message)
+    fun sendMessage(message: Message, chatId: String)
 
     fun registerNewMessageListener(listener: NewMessageListener)
     fun unregisterNewMessageListener(listener: NewMessageListener)

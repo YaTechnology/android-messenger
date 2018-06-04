@@ -91,9 +91,8 @@ class AmqpClient(private val factory: ConnectionFabric,
         }
     }
 
-    override fun sendMessage(message: Message) {
-        executor.execute({ channelSender.sendMessage(message) })
-
+    override fun sendMessage(message: Message, chatId: String) {
+        executor.execute({ channelSender.sendMessage(message, chatId) })
     }
 
     override fun registerNewMessageListener(listener: NewMessageListener) {
