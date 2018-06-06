@@ -10,46 +10,21 @@ import com.github.ndex.messenger.amqpmesenger.common.MainThreadNotifier
 import com.github.ndex.messenger.amqpmesenger.messages.ChatMessageHandler
 import com.github.ndex.messenger.amqpmesenger.messages.ServiceMessageHandler
 import com.github.ndex.messenger.demo_module.data.HistoryRepository
+import com.github.ndex.messenger.demo_module.data.SettingsRepository
 import com.github.ndex.messenger.interfaces.*
 import javax.inject.Inject
 
 typealias OnMessagesListUpdated = (List<Message>) -> Unit
 
-class ChatService @Inject constructor(private val historyRepository: HistoryRepository) {
+class ChatService @Inject constructor(private val historyRepository: HistoryRepository,
+                                      private val settings: SettingsRepository) {
     companion object {
         private val TAG = ChatService::class.java.simpleName
     }
 
-    val client: Client
+    private var client: Client = ClientStub()
     private var currentChatId = ""
     private var messageUpdateObserver = ArrayList<OnMessagesListUpdated>()
-
-    init {
-        val serializer = GsonSerializer()
-        val factory = ConnectionFabric()
-        val chatListMessageHandler = ChatMessageHandler()
-        val serviceMessageHandler = ServiceMessageHandler(serializer)
-        val consumerFabric = ConsumerFabric(serviceMessageHandler, chatListMessageHandler)
-        val userId = "11111111111"
-        client = AmqpClient(factory,
-                consumerFabric,
-                serviceMessageHandler,
-                chatListMessageHandler,
-                MainThreadNotifier(),
-                userId,
-                GsonSerializer(),
-                AndroidLogger())
-
-        chatListMessageHandler.listener = object : NewMessageListener {
-            override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
-                processNewMessage(message)
-            }
-        }
-    }
-
-    fun connect() {
-        client.connect()
-    }
 
     fun disconnect() {
         client.disconnect()
@@ -68,6 +43,14 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
 
     fun unregisterMessagesUpdateObserver(observer: OnMessagesListUpdated) {
         messageUpdateObserver.remove(observer)
+    }
+
+    fun registerNewMessageListener(listener: NewMessageListener) {
+        client.registerNewMessageListener(listener)
+    }
+
+    fun registerChatListChangedListener(listener: ChatListChangedListener) {
+        client.registerChatListChangedListener(listener)
     }
 
     fun sendMessage(text: String) {
@@ -89,6 +72,43 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
         messageUpdateObserver.forEach {
             it.invoke(messageList)
         }
+    }
+
+    fun shouldShowLoginScreen(): Boolean {
+        if (settings.requestLogin() != "") {
+            connect()
+            return false
+        }
+        return true
+    }
+
+    fun auth(login: String) {
+        settings.storeLogin(login)
+        connect()
+    }
+
+    private fun connect() {
+        val serializer = GsonSerializer()
+        val factory = ConnectionFabric()
+        val chatListMessageHandler = ChatMessageHandler()
+        val serviceMessageHandler = ServiceMessageHandler(serializer)
+        val consumerFabric = ConsumerFabric(serviceMessageHandler, chatListMessageHandler)
+        val userId = settings.requestLogin()
+        client = AmqpClient(factory,
+                consumerFabric,
+                serviceMessageHandler,
+                chatListMessageHandler,
+                MainThreadNotifier(),
+                userId,
+                GsonSerializer(),
+                AndroidLogger())
+
+        chatListMessageHandler.listener = object : NewMessageListener {
+            override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
+                processNewMessage(message)
+            }
+        }
+        client.connect()
     }
 
     private class MessageUpdateListenerStup : OnMessagesListUpdated {

@@ -34,19 +34,7 @@ class ChatActivity : AppCompatActivity() {
 
         initView()
 
-        chatViewModel.messagesList.observe(this, Observer {
-            if (it != null) {
-                messagesAdapter.submitList(it)
-                messagesAdapter.notifyDataSetChanged()
-            }
-        })
-
-        chatViewModel.updateEditTextEvent.observe(this, Observer {
-            if (it != null) {
-                messageEditText.text.clear()
-                messageEditText.text.append(it)
-            }
-        })
+        subscribe()
 
     }
 
@@ -60,6 +48,22 @@ class ChatActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(this)
         layoutManager.reverseLayout = true
         messageList.layoutManager = layoutManager
+    }
+
+    private fun subscribe() {
+        chatViewModel.messagesList.observe(this, Observer {
+            if (it != null) {
+                messagesAdapter.submitList(it)
+                messagesAdapter.notifyDataSetChanged()
+            }
+        })
+
+        chatViewModel.updateEditTextEvent.observe(this, Observer {
+            if (it != null) {
+                messageEditText.text.clear()
+                messageEditText.text.append(it)
+            }
+        })
     }
 }
 

@@ -6,7 +6,7 @@ import com.github.ndex.messenger.demo_module.di.AppComponent
 import com.github.ndex.messenger.demo_module.domain.ChatService
 import javax.inject.Inject
 
-class ChatViewModelFactory(private val appComponent: AppComponent) : ViewModelProvider.Factory {
+class ChatViewModelFactory(appComponent: AppComponent) : ViewModelProvider.Factory {
     @Inject
     lateinit var chatService: ChatService
 

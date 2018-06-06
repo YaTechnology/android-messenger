@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.support.v7.widget.RecyclerView
 import com.github.ndex.messenger.demo_module.R
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
+import android.content.Intent
 import android.support.v7.widget.LinearLayoutManager
 import com.github.ndex.messenger.demo_module.App
 import com.github.ndex.messenger.demo_module.presentation.chat.ChatActivity
@@ -49,3 +51,5 @@ class ChatListActivity : AppCompatActivity() {
         })
     }
 }
+
+fun Context.startChatListActivity() = startActivity(Intent(this, ChatListActivity::class.java))

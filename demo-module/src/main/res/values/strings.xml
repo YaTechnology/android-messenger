@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Demo-Module</string>
     <string name="title_activity_chat">ChatActivity</string>
+    <string name="auth_button_caption">Enter</string>
 </resources>
