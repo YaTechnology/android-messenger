@@ -25,7 +25,7 @@ class ViewHolderFactory {
                     .inflate(R.layout.input_message_item_layout, parent, false))
 
     fun getItemType(item: Message): Int {
-        if (item.fromChatId == "") {
+        if (item.fromCurrentUser) {
             return OUTPUT_MESSAGE_TYPE
         }
         return INPUT_MESSAGE_TYPE

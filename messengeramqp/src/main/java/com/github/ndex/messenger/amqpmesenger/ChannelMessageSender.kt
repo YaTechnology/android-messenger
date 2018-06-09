@@ -4,7 +4,5 @@ import com.github.ndex.messenger.interfaces.Message
 import com.rabbitmq.client.Channel
 
 interface ChannelMessageSender {
-    val channel: Channel
-
-    fun sendMessage(message: Message, chatId: String)
+    fun sendMessage(message: Message)
 }

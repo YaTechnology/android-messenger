@@ -43,11 +43,15 @@ class ChatActivity : AppCompatActivity() {
             chatViewModel.sendMessage(messageEditText.text.toString())
         })
 
+        val linearLayoutManager = LinearLayoutManager(this)
+        linearLayoutManager.reverseLayout = true
+
         messagesAdapter = MessageListAdapter(ViewHolderFactory())
-        messageList.adapter = messagesAdapter
-        val layoutManager = LinearLayoutManager(this)
-        layoutManager.reverseLayout = true
-        messageList.layoutManager = layoutManager
+        with(messageList) {
+            adapter = messagesAdapter
+            layoutManager = linearLayoutManager
+        }
+
     }
 
     private fun subscribe() {

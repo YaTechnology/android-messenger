@@ -1,5 +1,6 @@
 package com.github.ndex.messenger.demo_module.domain
 
+import android.support.annotation.WorkerThread
 import com.github.ndex.messenger.amqpmesenger.AmqpClient
 import com.github.ndex.messenger.amqpmesenger.AmqpMessage
 import com.github.ndex.messenger.amqpmesenger.ConnectionFabric
@@ -12,17 +13,15 @@ import com.github.ndex.messenger.amqpmesenger.messages.ServiceMessageHandler
 import com.github.ndex.messenger.demo_module.data.HistoryRepository
 import com.github.ndex.messenger.demo_module.data.SettingsRepository
 import com.github.ndex.messenger.interfaces.*
+import java.util.*
 import javax.inject.Inject
 
 typealias OnMessagesListUpdated = (List<Message>) -> Unit
 
 class ChatService @Inject constructor(private val historyRepository: HistoryRepository,
                                       private val settings: SettingsRepository) {
-    companion object {
-        private val TAG = ChatService::class.java.simpleName
-    }
 
-    private var client: Client = ClientStub()
+    lateinit var client: Client
     private var currentChatId = ""
     private var messageUpdateObserver = ArrayList<OnMessagesListUpdated>()
 
@@ -55,19 +54,18 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
 
     fun sendMessage(text: String) {
         val message = buildMessage(text)
-        client.sendMessage(message, currentChatId)
+        client.sendMessage(message)
         processNewMessage(message)
     }
 
-    private fun buildMessage(text: String) = AmqpMessage(text.toByteArray(), "")
+    private fun buildMessage(text: String) =
+            AmqpMessage(id = UUID.randomUUID().toString(),
+                    body = text.toByteArray(),
+                    fromUserId = settings.requestLogin(),
+                    chatId = currentChatId,
+                    fromCurrentUser = true)
 
-    private fun processNewMessage(message: Message) {
-        historyRepository.updateHistory(message)
-        historyRepository.requestHistory {
-            notifyMessagesListUpdated(it)
-        }
-    }
-
+    @WorkerThread
     private fun notifyMessagesListUpdated(messageList: List<Message>) {
         messageUpdateObserver.forEach {
             it.invoke(messageList)
@@ -88,11 +86,12 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
     }
 
     private fun connect() {
+        val log = AndroidLogger()
         val serializer = GsonSerializer()
         val factory = ConnectionFabric()
         val chatListMessageHandler = ChatMessageHandler()
         val serviceMessageHandler = ServiceMessageHandler(serializer)
-        val consumerFabric = ConsumerFabric(serviceMessageHandler, chatListMessageHandler)
+        val consumerFabric = ConsumerFabric(serviceMessageHandler, chatListMessageHandler, log)
         val userId = settings.requestLogin()
         client = AmqpClient(factory,
                 consumerFabric,
@@ -101,7 +100,7 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
                 MainThreadNotifier(),
                 userId,
                 GsonSerializer(),
-                AndroidLogger())
+                log)
 
         chatListMessageHandler.listener = object : NewMessageListener {
             override fun onMessageReceived(message: Message, chatInfo: ChatInfo) {
@@ -111,9 +110,20 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
         client.connect()
     }
 
+    private fun processNewMessage(message: Message) {
+        historyRepository.updateHistory(message)
+        historyRepository.requestHistory {
+            notifyMessagesListUpdated(it)
+        }
+    }
+
     private class MessageUpdateListenerStup : OnMessagesListUpdated {
         override fun invoke(p1: List<Message>) {
             /* stub */
         }
+    }
+
+    companion object {
+        private val TAG = ChatService::class.java.simpleName
     }
 }

@@ -3,6 +3,7 @@ package com.github.ndex.messenger.demo_module.presentation.chat
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import android.support.annotation.WorkerThread
 import com.github.ndex.messenger.demo_module.domain.ChatService
 import com.github.ndex.messenger.demo_module.domain.OnMessagesListUpdated
 import com.github.ndex.messenger.demo_module.presentation.common.ActionLiveData
@@ -30,8 +31,9 @@ class ChatViewModel(private val chatService: ChatService) : ViewModel() {
     }
 
     private inner class UpdateMessageList : OnMessagesListUpdated {
+        @WorkerThread
         override fun invoke(messages: List<Message>) {
-            _messagesList.value = messages
+            _messagesList.postValue(messages)
         }
     }
 }

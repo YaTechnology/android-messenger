@@ -22,11 +22,11 @@ class MessageListAdapter(private val factory: ViewHolderFactory) : ListAdapter<M
     private class DiffCallbackImpl : DiffUtil.ItemCallback<Message>() {
 
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean =
-                oldItem.time == newItem.time && oldItem.fromChatId == newItem.fromChatId
+                oldItem.time == newItem.time && oldItem.chatId == newItem.chatId
 
 
         override fun areContentsTheSame(oldItem: Message, newItem: Message): Boolean =
-                oldItem.time == newItem.time && oldItem.fromChatId == newItem.fromChatId &&
+                oldItem.time == newItem.time && oldItem.chatId == newItem.chatId &&
                         oldItem.text == newItem.text
     }
 }

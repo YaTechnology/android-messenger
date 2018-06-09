@@ -27,10 +27,15 @@ class ChatListActivity : AppCompatActivity() {
         val appComponent = (application as App).appComponent
         val chatListFactory = ChatListViewModelFactory(appComponent)
         chatViewModel = ViewModelProviders.of(this, chatListFactory).get(ChatListViewModel::class.java)
-
-        chatList.layoutManager = LinearLayoutManager(this)
         chatListAdapter = ChatListAdapter()
-        chatList.adapter = chatListAdapter
+
+        val linearLayoutManager = LinearLayoutManager(this)
+
+        with(chatList) {
+            layoutManager = linearLayoutManager
+            adapter = chatListAdapter
+        }
+
         chatListAdapter.clickListener = object : ItemClickListener {
             override fun invoke(item: ChatInfo) {
                 chatViewModel.onItemClicked(item)
