@@ -10,6 +10,9 @@ class ConnectionFabric {
 
     constructor() {
         factory = ConnectionFactory()
-        factory.host = "10.0.2.2"
+        //factory.host = "10.0.2.2" // for emulator localhost
+        factory.host = "85.143.222.18"
+        factory.password = "msgr"
+        factory.username = "rabbitmq"
     }
 }

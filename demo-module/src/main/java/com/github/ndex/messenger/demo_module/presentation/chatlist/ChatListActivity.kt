@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.support.v7.widget.RecyclerView
 import com.github.ndex.messenger.demo_module.R
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
+import android.content.Intent
 import android.support.v7.widget.LinearLayoutManager
 import com.github.ndex.messenger.demo_module.App
 import com.github.ndex.messenger.demo_module.presentation.chat.ChatActivity
@@ -25,10 +27,15 @@ class ChatListActivity : AppCompatActivity() {
         val appComponent = (application as App).appComponent
         val chatListFactory = ChatListViewModelFactory(appComponent)
         chatViewModel = ViewModelProviders.of(this, chatListFactory).get(ChatListViewModel::class.java)
-
-        chatList.layoutManager = LinearLayoutManager(this)
         chatListAdapter = ChatListAdapter()
-        chatList.adapter = chatListAdapter
+
+        val linearLayoutManager = LinearLayoutManager(this)
+
+        with(chatList) {
+            layoutManager = linearLayoutManager
+            adapter = chatListAdapter
+        }
+
         chatListAdapter.clickListener = object : ItemClickListener {
             override fun invoke(item: ChatInfo) {
                 chatViewModel.onItemClicked(item)
@@ -38,12 +45,16 @@ class ChatListActivity : AppCompatActivity() {
     }
 
     private fun subscribeData() {
-        chatViewModel.getChatList().observe(this, Observer<List<ChatInfo>> { newValue ->
-            chatListAdapter.submitList(newValue!!)
+        chatViewModel.chatList.observe(this, Observer<List<ChatInfo>> { newValue ->
+            chatListAdapter.submitList(newValue)
         })
 
-        chatViewModel.getOpenChatEvent().observe(this, Observer<ChatInfo> { chatInfo ->
-            startChatActivity(chatInfo!!)
+        chatViewModel.openChatEvent.observe(this, Observer<ChatInfo> { chatInfo ->
+            if (chatInfo != null) {
+                startChatActivity(chatInfo)
+            }
         })
     }
 }
+
+fun Context.startChatListActivity() = startActivity(Intent(this, ChatListActivity::class.java))

@@ -1,20 +1,39 @@
 package com.github.ndex.messenger.demo_module.presentation.chat
 
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import android.support.annotation.WorkerThread
 import com.github.ndex.messenger.demo_module.domain.ChatService
-import com.github.ndex.messenger.interfaces.Client
+import com.github.ndex.messenger.demo_module.domain.OnMessagesListUpdated
+import com.github.ndex.messenger.demo_module.presentation.common.ActionLiveData
 import com.github.ndex.messenger.interfaces.Message
 
-class ChatViewModel(private val chatService: ChatService, private val chatId: String) : ViewModel() {
-    private val client: Client = chatService.client
-    private val messagesList = MutableLiveData<List<Message>>()
+class ChatViewModel(private val chatService: ChatService) : ViewModel() {
+    private val messagesObserver = UpdateMessageList()
+    private val _messagesList = MutableLiveData<List<Message>>()
+    private val _updateEditTextEvent = ActionLiveData<String>()
 
-    //fun getMessagesList(): LiveData<List<Message>> {
-    //    return chatService.
-    //}
+    val messagesList: LiveData<List<Message>> get() = _messagesList
+    val updateEditTextEvent: LiveData<String> get() = _updateEditTextEvent
+
+    init {
+        chatService.registerMessagesUpdateObserver(messagesObserver)
+    }
 
     fun sendMessage(text: String) {
-        //client.sendMessage()
+        chatService.sendMessage(text)
+        _updateEditTextEvent.sendAction("")
+    }
+
+    override fun onCleared() {
+        chatService.unregisterMessagesUpdateObserver(messagesObserver)
+    }
+
+    private inner class UpdateMessageList : OnMessagesListUpdated {
+        @WorkerThread
+        override fun invoke(messages: List<Message>) {
+            _messagesList.postValue(messages)
+        }
     }
 }

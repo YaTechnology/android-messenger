@@ -8,38 +8,24 @@ import com.github.ndex.messenger.demo_module.presentation.common.ActionLiveData
 import com.github.ndex.messenger.interfaces.*
 
 
-class ChatListViewModel(chatService: ChatService) : ViewModel() {
-    private val client: Client = chatService.client
-
-    private val chatList = MutableLiveData<List<ChatInfo>>()
-    private val openChatEvent = ActionLiveData<ChatInfo>()
+class ChatListViewModel(private val chatService: ChatService) : ViewModel() {
+    private val _chatList = MutableLiveData<List<ChatInfo>>()
+    private val _openChatEvent = ActionLiveData<ChatInfo>()
+    val chatList: LiveData<List<ChatInfo>> get() = _chatList
+    val openChatEvent: LiveData<ChatInfo> get() = _openChatEvent
 
     init {
-        client.registerConnectionListener(ConnectedListenerImpl())
-        client.registerNewMessageListener(MessageReceiverImpl())
-        client.registerChatListChangedListener(ChatListChangedListenerImpl())
-        client.connect()
+        chatService.registerNewMessageListener(MessageReceiverImpl())
+        chatService.registerChatListChangedListener(ChatListChangedListenerImpl())
     }
 
-    fun getChatList(): LiveData<List<ChatInfo>> = chatList
-    fun getOpenChatEvent(): LiveData<ChatInfo> = openChatEvent
-
     override fun onCleared() {
-        client.disconnect()
+        chatService.disconnect()
     }
 
     fun onItemClicked(item: ChatInfo) {
-        openChatEvent.sendAction(item)
-    }
-
-    private inner class ConnectedListenerImpl : ConnectionListener {
-        override fun onConnected() {
-            println("onConnected")
-        }
-
-        override fun onDisconnected(reason: DisconnectionReasonException) {
-            println("onDisconnected")
-        }
+        chatService.selectChat(item.id, item.name)
+        _openChatEvent.sendAction(item)
     }
 
     private inner class MessageReceiverImpl : NewMessageListener {
@@ -51,7 +37,7 @@ class ChatListViewModel(chatService: ChatService) : ViewModel() {
     private inner class ChatListChangedListenerImpl : ChatListChangedListener {
         override fun onChatListChanged(list: List<ChatInfo>) {
             println("onChatListChanged: count = ${list.size}")
-            chatList.postValue(list)
+            _chatList.postValue(list)
         }
     }
 }

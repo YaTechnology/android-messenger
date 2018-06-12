@@ -2,13 +2,28 @@ package com.github.ndex.messenger.demo_module.data
 
 import android.content.Context
 import com.github.ndex.messenger.interfaces.Message
+import java.util.*
+import kotlin.Comparator
 
-class HistoryRepositoryImpl (private val appContext: Context) : HistoryRepository {
+class HistoryRepositoryImpl(private val appContext: Context) : HistoryRepository {
+    private val messagesList = TreeSet<Message>(MessageComparator())
+
     override fun requestHistory(callback: HistoryCallback) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        callback.invoke(messagesList.toList())
     }
 
     override fun updateHistory(message: Message) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!messagesList.add(message)) {
+            message.sent = true
+        }
+    }
+}
+
+private class MessageComparator : Comparator<Message> {
+    override fun compare(o1: Message, o2: Message): Int {
+        if (o1.id == o2.id) {
+            return 0
+        }
+        return -o1.time.compareTo(o2.time)
     }
 }
