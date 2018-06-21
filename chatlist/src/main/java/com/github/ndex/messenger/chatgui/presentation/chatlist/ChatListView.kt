@@ -50,12 +50,5 @@ class ChatListView @JvmOverloads constructor(
         chatViewModel.chatList.observe(lifecycleOwner, Observer<List<ChatInfo>> { newValue ->
             chatListAdapter.submitList(newValue)
         })
-
-        chatViewModel.openChatEvent.observe(lifecycleOwner, Observer<ChatInfo> { chatInfo ->
-            if (chatInfo != null) {
-                // TODO: place to router.
-                // showChatScreen(chatInfo)
-            }
-        })
     }
 }

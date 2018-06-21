@@ -37,6 +37,7 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
      */
     fun selectChat(chatId: String, name: String) {
         currentChatId = chatId
+        router.invoke(ScreenState.CHAT_SCREEN)
     }
 
     fun registerMessagesUpdateObserver(observer: OnMessagesListUpdated) {
@@ -126,6 +127,14 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
         historyRepository.updateHistory(message)
         historyRepository.requestHistory {
             notifyMessagesListUpdated(it)
+        }
+    }
+
+    fun onMainScreenCreated() {
+        if (shouldShowLoginScreen()) {
+            router.invoke(ScreenState.LOGIN_SCREEN)
+        } else {
+            router.invoke(ScreenState.CHAT_LIST_SCREEN)
         }
     }
 

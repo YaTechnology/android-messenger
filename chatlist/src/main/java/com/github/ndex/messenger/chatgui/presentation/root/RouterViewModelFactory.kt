@@ -15,8 +15,8 @@ class RouterViewModelFactory (appComponent: AppComponent) : ViewModelProvider.Fa
     }
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(RouterViewModel::class.java)) {
-            return RouterViewModel(chatService) as T
+        if (modelClass.isAssignableFrom(RootViewModel::class.java)) {
+            return RootViewModel(chatService) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

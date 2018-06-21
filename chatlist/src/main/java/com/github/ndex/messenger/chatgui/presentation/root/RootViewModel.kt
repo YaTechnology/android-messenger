@@ -9,7 +9,7 @@ import com.github.ndex.messenger.chatgui.presentation.common.ActionLiveData
 /**
  * Controlls main screen, like Router component.
  */
-class RouterViewModel(private val chatService: ChatService) : ViewModel() {
+class RootViewModel(private val chatService: ChatService) : ViewModel() {
     private val _showScreen = ActionLiveData<ScreenState>()
     val showScreen: LiveData<ScreenState> get() = _showScreen
 
@@ -24,11 +24,7 @@ class RouterViewModel(private val chatService: ChatService) : ViewModel() {
      * Called when root view created.
      */
     fun onCreated() {
-        if (chatService.shouldShowLoginScreen()) {
-            _showScreen.sendAction(ScreenState.LOGIN_SCREEN)
-        } else {
-            _showScreen.sendAction(ScreenState.CHAT_LIST_SCREEN)
-        }
+        chatService.onMainScreenCreated()
     }
 
     override fun onCleared() {

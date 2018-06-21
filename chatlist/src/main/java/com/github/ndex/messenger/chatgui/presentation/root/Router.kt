@@ -5,18 +5,17 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.support.v4.app.FragmentActivity
-import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import com.github.ndex.messenger.chatgui.di.AppComponentHolder
+import com.github.ndex.messenger.chatgui.presentation.chat.ChatView
 import com.github.ndex.messenger.chatgui.presentation.chatlist.ChatListView
 import com.github.ndex.messenger.chatgui.presentation.login.LoginView
 
-class RootMessengerScreen @JvmOverloads constructor(
-        context: Context,
-        attrs: AttributeSet? = null,
-        defStyleAttr: Int = 0) : FrameLayout(context, attrs, defStyleAttr) {
-    private lateinit var routerViewModel: RouterViewModel
+class Router(private val context: Context, private val rootView: FrameLayout) {
+    private lateinit var routerViewModel: RootViewModel
     private var currentView: View? = null
 
     init {
@@ -25,7 +24,7 @@ class RootMessengerScreen @JvmOverloads constructor(
 
         val appComponent = AppComponentHolder.provideAppComponent(context.applicationContext)
         val factory = RouterViewModelFactory(appComponent)
-        routerViewModel = ViewModelProviders.of(activity, factory).get(RouterViewModel::class.java)
+        routerViewModel = ViewModelProviders.of(activity, factory).get(RootViewModel::class.java)
 
 
         routerViewModel.showScreen.observe(lifecycleOwner, Observer {
@@ -39,14 +38,15 @@ class RootMessengerScreen @JvmOverloads constructor(
 
     private fun showScreen(screen: ScreenState) {
         if (currentView != null) {
-            removeView(currentView)
+            rootView.removeView(currentView)
         }
 
-        when (screen) {
-            ScreenState.LOGIN_SCREEN -> currentView = LoginView(context)
-            ScreenState.CHAT_LIST_SCREEN -> currentView = ChatListView(context)
+        currentView = when (screen) {
+            ScreenState.LOGIN_SCREEN -> LoginView(context)
+            ScreenState.CHAT_LIST_SCREEN -> ChatListView(context)
+            else -> ChatView(context)
         }
-
-        addView(currentView)
+        currentView!!.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+        rootView.addView(currentView)
     }
 }
