@@ -12,11 +12,13 @@ import com.github.ndex.messenger.amqpmesenger.messages.ChatMessageHandler
 import com.github.ndex.messenger.amqpmesenger.messages.ServiceMessageHandler
 import com.github.ndex.messenger.chatgui.data.HistoryRepository
 import com.github.ndex.messenger.chatgui.data.SettingsRepository
+import com.github.ndex.messenger.chatgui.presentation.root.ScreenState
 import com.github.ndex.messenger.interfaces.*
 import java.util.*
 import javax.inject.Inject
 
 typealias OnMessagesListUpdated = (List<Message>) -> Unit
+typealias OnScreenStateChanged = (ScreenState) -> Unit
 
 class ChatService @Inject constructor(private val historyRepository: HistoryRepository,
                                       private val settings: SettingsRepository) {
@@ -24,6 +26,7 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
     lateinit var client: Client
     private var currentChatId = ""
     private var messageUpdateObserver = ArrayList<OnMessagesListUpdated>()
+    private var router: OnScreenStateChanged = OnScreenStateChangedStub()
 
     fun disconnect() {
         client.disconnect()
@@ -50,6 +53,14 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
 
     fun registerChatListChangedListener(listener: ChatListChangedListener) {
         client.registerChatListChangedListener(listener)
+    }
+
+    fun registerScreenChangedListener(listener: OnScreenStateChanged) {
+        router = listener
+    }
+
+    fun unregisterScreenStateChangedListener(listener: OnScreenStateChanged) {
+        router = OnScreenStateChangedStub()
     }
 
     fun sendMessage(text: String) {
@@ -83,6 +94,7 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
     fun auth(login: String) {
         settings.storeLogin(login)
         connect()
+        router.invoke(ScreenState.CHAT_LIST_SCREEN)
     }
 
     private fun connect() {
@@ -117,8 +129,14 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
         }
     }
 
-    private class MessageUpdateListenerStup : OnMessagesListUpdated {
+    private class MessageUpdateListenerStub : OnMessagesListUpdated {
         override fun invoke(p1: List<Message>) {
+            /* stub */
+        }
+    }
+
+    private class OnScreenStateChangedStub : OnScreenStateChanged {
+        override fun invoke(p1: ScreenState) {
             /* stub */
         }
     }

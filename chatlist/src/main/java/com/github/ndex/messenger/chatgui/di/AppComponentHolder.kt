@@ -5,6 +5,7 @@ import android.support.annotation.VisibleForTesting
 import com.github.ndex.messenger.chatgui.presentation.chat.ChatViewModelFactory
 import com.github.ndex.messenger.chatgui.presentation.chatlist.ChatListViewModelFactory
 import com.github.ndex.messenger.chatgui.presentation.login.LoginViewModelFactory
+import com.github.ndex.messenger.chatgui.presentation.root.RouterViewModelFactory
 
 /**
  * Provides AppComponent.
@@ -38,6 +39,10 @@ private class AppComponentStub : AppComponent {
     }
 
     override fun inject(factory: LoginViewModelFactory) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun inject(factory: RouterViewModelFactory) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

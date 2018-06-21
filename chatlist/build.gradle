@@ -39,7 +39,7 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     //Dagger 2 dependencies
     implementation 'com.google.dagger:dagger:2.13'
-    //kapt 'com.google.dagger:dagger-compiler:2.13'
+    kapt 'com.google.dagger:dagger-compiler:2.13'
 
     implementation project(':gui')
     implementation project(':interfaces')
