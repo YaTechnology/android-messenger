@@ -49,4 +49,6 @@ class Router(private val context: Context, private val rootView: FrameLayout) {
         currentView!!.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
         rootView.addView(currentView)
     }
+
+    fun onBackPressed(): Boolean = routerViewModel.onBackPressed()
 }

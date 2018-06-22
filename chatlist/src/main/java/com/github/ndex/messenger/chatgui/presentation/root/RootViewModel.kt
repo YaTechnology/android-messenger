@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModel
 import com.github.ndex.messenger.chatgui.domain.ChatService
 import com.github.ndex.messenger.chatgui.domain.OnScreenStateChanged
 import com.github.ndex.messenger.chatgui.presentation.common.ActionLiveData
+import java.util.*
 
 /**
  * Controlls main screen, like Router component.
@@ -12,9 +13,10 @@ import com.github.ndex.messenger.chatgui.presentation.common.ActionLiveData
 class RootViewModel(private val chatService: ChatService) : ViewModel() {
     private val _showScreen = ActionLiveData<ScreenState>()
     val showScreen: LiveData<ScreenState> get() = _showScreen
+    var currentScreen: ScreenState = ScreenState.NONE
 
     private val screenStateListener = OnScreenStateChangedListener()
-    private var screenBackStack = ArrayList<ScreenState>()
+    private var screenBackStack = Stack<ScreenState>()
 
     init {
         chatService.registerScreenChangedListener(screenStateListener)
@@ -31,8 +33,26 @@ class RootViewModel(private val chatService: ChatService) : ViewModel() {
         chatService.unregisterScreenStateChangedListener(screenStateListener)
     }
 
+    /**
+     * return true if overrides back press, false otherwise.
+     */
+    fun onBackPressed(): Boolean {
+        if (screenBackStack.size == 0) {
+            return false
+        }
+        val currentScreen = screenBackStack.pop()
+        _showScreen.sendAction(currentScreen)
+        return true
+    }
+
     private inner class OnScreenStateChangedListener : OnScreenStateChanged {
         override fun invoke(screenState: ScreenState) {
+
+            if (currentScreen != ScreenState.NONE && currentScreen != ScreenState.LOGIN_SCREEN) {
+                screenBackStack.push(currentScreen)
+            }
+            currentScreen = screenState
+
             _showScreen.sendAction(screenState)
         }
     }

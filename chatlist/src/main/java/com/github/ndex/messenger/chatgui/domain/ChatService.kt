@@ -84,7 +84,7 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
         }
     }
 
-    fun shouldShowLoginScreen(): Boolean {
+    private fun shouldShowLoginScreen(): Boolean {
         if (settings.requestLogin() != "") {
             connect()
             return false
@@ -135,12 +135,6 @@ class ChatService @Inject constructor(private val historyRepository: HistoryRepo
             router.invoke(ScreenState.LOGIN_SCREEN)
         } else {
             router.invoke(ScreenState.CHAT_LIST_SCREEN)
-        }
-    }
-
-    private class MessageUpdateListenerStub : OnMessagesListUpdated {
-        override fun invoke(p1: List<Message>) {
-            /* stub */
         }
     }
 
